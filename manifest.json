@@ -1,0 +1,23 @@
+{
+    "name": "MissClipper",
+    "author": "Kotone Fami",
+    "version": "0.1.0",
+    "manifest_version": 3,
+    "action": {
+        "default_title": "MissClipper",
+        "default_popup": "popup.html"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["*"],
+            "matches": ["*://*.twitter.com/*", "*://*.x.com/*"]
+        }
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://*.twitter.com/*", "*://*.x.com/*"],
+            "js": ["index.twitter.js"],
+            "run_at": "document_start"
+        }
+    ]
+}
