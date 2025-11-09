@@ -3,7 +3,7 @@ import { getClips } from "./lib/misskey";
 
 const styleTag = document.createElement("style");
 styleTag.textContent = `
-.mscl-dialog {
+.missclipper-dialog {
     position: fixed;
     top: 0px;
     left: 0px;
@@ -83,13 +83,13 @@ waitForElement("head").then((head) => head[0].appendChild(styleTag));
 
 const dialogTemplate = new DOMParser().parseFromString(
     `
-    <div class="mscl-dialog">
+    <div class="missclipper-dialog">
         <div>
             <header>
                 クリップを選択してください
                 <button type="button" class="close">閉じる</button>
             </header>
-            <div data-mc-list>
+            <div data-missclipper-list>
                 読み込み中です。
             </div>
             <footer>
@@ -110,7 +110,7 @@ export async function askClipId(callback?: (clipId: string) => any): Promise<str
             dialogElement.remove();
         });
 
-        const listElement = dialogElement.querySelector("[data-mc-list]")!;
+        const listElement = dialogElement.querySelector("[data-missclipper-list]")!;
         listElement.innerHTML = "";
         for (const clip of await getClips()) {
             const buttonElement = document.createElement("button");

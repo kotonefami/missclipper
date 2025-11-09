@@ -6,8 +6,8 @@ cp("src/html/popup.html", "dist/popup.html");
 cp("src/html/options.html", "dist/options.html");
 
 build({
-    entryPoints: ["src/index.twitter.ts"],
-    outfile: "dist/index.twitter.js",
+    entryPoints: ["src/index.content.ts"],
+    outfile: "dist/index.content.js",
     platform: "browser",
     format: "cjs",
     bundle: true,
