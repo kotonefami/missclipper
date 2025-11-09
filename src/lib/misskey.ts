@@ -1,4 +1,4 @@
-import { host, api_token, channel_id } from "../config";
+import { getConfig } from "../config";
 import { Tweet } from "./twitter";
 
 /**
@@ -19,11 +19,13 @@ type Clip = {
  * Misskey からクリップのリストを取得します。
  */
 export async function getClips(): Promise<Clip[]> {
+    const config = await getConfig();
+
     const clips = (await (
-        await fetch(new URL("/api/clips/list", host), {
+        await fetch(new URL("/api/clips/list", config.host), {
             method: "POST",
             headers: {
-                Authorization: "Bearer " + api_token,
+                Authorization: "Bearer " + config.api_token,
                 "Content-Type": "application/json",
             },
             body: "{}",
@@ -40,6 +42,7 @@ export async function getClips(): Promise<Clip[]> {
  * @param clipId ノートを追加するクリップのID
  */
 export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void> {
+    const config = await getConfig();
     const author = await tweet.getAuthor();
 
     // NOTE: メディアをドライブにアップロード
@@ -51,10 +54,10 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
             body.append("file", await (await fetch(media.getOriginalUrl())).blob());
 
             const result = await (
-                await fetch(new URL("/api/drive/files/create", host), {
+                await fetch(new URL("/api/drive/files/create", config.host), {
                     method: "POST",
                     headers: {
-                        Authorization: "Bearer " + api_token,
+                        Authorization: "Bearer " + config.api_token,
                     },
                     body,
                 })
@@ -66,11 +69,11 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
     // NOTE: ノートを作成する
     const noteData = (
         await (
-            await fetch(new URL("/api/notes/create", host), {
+            await fetch(new URL("/api/notes/create", config.host), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: "Bearer " + api_token,
+                    Authorization: "Bearer " + config.api_token,
                 },
                 body: JSON.stringify({
                     text:
@@ -82,7 +85,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                                   .join("\n") +
                               "\n" +
                               `https://x.com/i/status/${tweet.id}`,
-                    channelId: channel_id,
+                    channelId: config.channel_id,
                     mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
                 }),
             })
@@ -91,11 +94,11 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
     if (clipId)
-        await fetch(new URL("/api/clips/add-note", host), {
+        await fetch(new URL("/api/clips/add-note", config.host), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: "Bearer " + api_token,
+                Authorization: "Bearer " + config.api_token,
             },
             body: JSON.stringify({
                 clipId,

@@ -1,12 +1,14 @@
 {
     "name": "MissClipper",
     "author": "Kotone Fami",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "manifest_version": 3,
+    "permissions": ["storage"],
     "action": {
         "default_title": "MissClipper",
         "default_popup": "popup.html"
     },
+    "options_page": "options.html",
     "web_accessible_resources": [
         {
             "resources": ["*"],

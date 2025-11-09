@@ -1,16 +1,18 @@
-import { api_token, host } from "./config";
+import { getConfig } from "./config";
 import { getClips } from "./lib/misskey";
 
 async function refreshList() {
     const listElement = document.querySelector("#list")!;
     listElement.innerHTML = "";
 
+    const config = await getConfig();
+
     for (const clip of await getClips()) {
         const itemElement = document.createElement("li");
 
         const linkElement = document.createElement("a");
         linkElement.target = "_blank";
-        linkElement.href = new URL("/clips/" + clip.id, host).toString();
+        linkElement.href = new URL("/clips/" + clip.id, config.host).toString();
         linkElement.textContent = clip.name;
         itemElement.appendChild(linkElement);
 
@@ -20,10 +22,10 @@ async function refreshList() {
             const newName = prompt("新しい名前を入力してください", clip.name);
             if (!newName) return;
 
-            fetch(new URL("/api/clips/update", host), {
+            fetch(new URL("/api/clips/update", config.host), {
                 method: "POST",
                 headers: {
-                    Authorization: "Bearer " + api_token,
+                    Authorization: "Bearer " + config.api_token,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
