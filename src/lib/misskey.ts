@@ -1,11 +1,23 @@
 import { host, api_token, channel_id } from "../config";
 import { Tweet } from "./twitter";
 
+/**
+ * Misskey クリップ
+ */
 type Clip = {
+    /**
+     * クリップID
+     */
     id: string;
+    /**
+     * クリップ名
+     */
     name: string;
 };
 
+/**
+ * Misskey からクリップのリストを取得します。
+ */
 export async function getClips(): Promise<Clip[]> {
     const clips = (await (
         await fetch(new URL("/api/clips/list", host), {
@@ -21,8 +33,16 @@ export async function getClips(): Promise<Clip[]> {
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
-export async function postToMisskey(tweet: Tweet, clipId?: string) {
+/**
+ * Twitter のツイートを Misskey に投稿します。
+ * メディアがある場合は、Misskey のドライブにアップロードしてノートに添付します。
+ * @param tweet 投稿するツイートオブジェクト
+ * @param clipId ノートを追加するクリップのID
+ */
+export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void> {
     const author = await tweet.getAuthor();
+
+    // NOTE: メディアをドライブにアップロード
     const mediaIds = await Promise.all(
         (await tweet.getMediaList()).map(async (media, mediaIndex) => {
             const body = new FormData();
@@ -43,6 +63,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string) {
         }),
     );
 
+    // NOTE: ノートを作成する
     const noteData = (
         await (
             await fetch(new URL("/api/notes/create", host), {
@@ -68,6 +89,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string) {
         ).json()
     ).createdNote;
 
+    // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
     if (clipId)
         await fetch(new URL("/api/clips/add-note", host), {
             method: "POST",
