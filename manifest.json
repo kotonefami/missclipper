@@ -1,7 +1,7 @@
 {
     "name": "MissClipper",
     "author": "Kotone Fami",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "manifest_version": 3,
     "permissions": ["storage"],
     "action": {
