@@ -1,8 +1,12 @@
 {
-	"scripts": {
-		"build": "node scripts/build.mjs"
-	},
-	"dependencies": {
-		"esbuild": "^0.24.2"
-	}
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "format": "prettier --write ."
+    },
+    "dependencies": {
+        "esbuild": "^0.24.2"
+    },
+    "devDependencies": {
+        "prettier": "^3.6.2"
+    }
 }

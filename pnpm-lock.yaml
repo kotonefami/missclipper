@@ -11,6 +11,10 @@ importers:
       esbuild:
         specifier: ^0.24.2
         version: 0.24.2
+    devDependencies:
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
 
 packages:
 
@@ -169,6 +173,11 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  prettier@3.6.2:
+    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+
 snapshots:
 
   '@esbuild/aix-ppc64@0.24.2':
@@ -273,3 +282,5 @@ snapshots:
       '@esbuild/win32-arm64': 0.24.2
       '@esbuild/win32-ia32': 0.24.2
       '@esbuild/win32-x64': 0.24.2
+
+  prettier@3.6.2: {}

@@ -23,13 +23,13 @@ async function refreshList() {
             fetch(new URL("/api/clips/update", host), {
                 method: "POST",
                 headers: {
-                    "Authorization": "Bearer " + api_token,
+                    Authorization: "Bearer " + api_token,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     clipId: clip.id,
-                    name: newName
-                })
+                    name: newName,
+                }),
             }).then(() => refreshList());
         });
         itemElement.appendChild(buttonElement);

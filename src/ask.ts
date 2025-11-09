@@ -79,9 +79,10 @@ styleTag.textContent = `
 }
 </style>
 `;
-waitForElement("head").then(head => head[0].appendChild(styleTag));
+waitForElement("head").then((head) => head[0].appendChild(styleTag));
 
-const dialogTemplate = new DOMParser().parseFromString(`
+const dialogTemplate = new DOMParser().parseFromString(
+    `
     <div class="mscl-dialog">
         <div>
             <header>
@@ -96,12 +97,14 @@ const dialogTemplate = new DOMParser().parseFromString(`
             </footer>
         </div>
     </div>
-`, "text/html").body.children[0];
+`,
+    "text/html",
+).body.children[0];
 
 export async function askClipId(callback?: (clipId: string) => any): Promise<string> {
-    return new Promise<string>(async resolve => {
+    return new Promise<string>(async (resolve) => {
         const dialogElement = dialogTemplate.cloneNode(true) as Element;
-        waitForElement("#react-root").then(root => root.item(0).appendChild(dialogElement));
+        waitForElement("#react-root").then((root) => root.item(0).appendChild(dialogElement));
 
         dialogElement.querySelector<HTMLButtonElement>(".close")?.addEventListener("click", () => {
             dialogElement.remove();

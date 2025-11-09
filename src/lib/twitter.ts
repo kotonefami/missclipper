@@ -111,7 +111,7 @@ export class Tweet {
 
         this.#author = new User();
         const userIconLink = this.#element.querySelector<HTMLAnchorElement>('[data-testid="Tweet-User-Avatar"] a')!;
-        (await waitForElement<HTMLImageElement>("img", userIconLink))[0].src
+        (await waitForElement<HTMLImageElement>("img", userIconLink))[0].src;
         const userLink = this.#element.querySelector('[data-testid="User-Name"] a')!;
         this.#author.screenName = /\/([a-zA-Z0-9_]{1,16})$/.exec(userIconLink.href)?.[1]!;
         this.#author.name = userLink.textContent!;
@@ -138,41 +138,43 @@ export class Tweet {
         if (this.#mediaList) return this.#mediaList;
 
         // NOTE: センシティブなメディアである旨の警告が表示されている場合は、表示ボタンを押す
-        if (this.hasSensitiveMedia)
-            this.openSensitiveMedia();
+        if (this.hasSensitiveMedia) this.openSensitiveMedia();
 
         // NOTE: サムネイルを取得
         const mediaContainers = Array.from(this.#element.querySelectorAll('a[href*="/photo/"], video'));
-        const mediaList = (await Promise.all(mediaContainers.map(async e => {
-            if (e instanceof HTMLVideoElement) {
-                if (e.src === "") {
-                    // TODO: <video><source> は source.src に blob が入るが、fetch では取得ができない
-                    return null;
+        const mediaList = (
+            await Promise.all(
+                mediaContainers.map(async (e) => {
+                    if (e instanceof HTMLVideoElement) {
+                        if (e.src === "") {
+                            // TODO: <video><source> は source.src に blob が入るが、fetch では取得ができない
+                            return null;
 
-                    // TODO: 最高画質の動画を取得する
-                    // const source = e.querySelector("source");
+                            // TODO: 最高画質の動画を取得する
+                            // const source = e.querySelector("source");
 
-                    // if (!source) return null;
-                    // return await new Promise<string>(async (resolve, reject) => {
-                    //     const reader = new FileReader();
-                    //     reader.onloadend = () => resolve(reader.result as string);
-                    //     reader.onerror = reject;
-                    //     reader.readAsDataURL(await (await fetch(source.src)).blob());
-                    // });
-                } else {
-                    return e.src;
-                }
-            } else {
-                return (await waitForElement<HTMLImageElement>("img", e)).item(0).src;
-            }
-        }))).filter((a): a is string => !!a);
+                            // if (!source) return null;
+                            // return await new Promise<string>(async (resolve, reject) => {
+                            //     const reader = new FileReader();
+                            //     reader.onloadend = () => resolve(reader.result as string);
+                            //     reader.onerror = reject;
+                            //     reader.readAsDataURL(await (await fetch(source.src)).blob());
+                            // });
+                        } else {
+                            return e.src;
+                        }
+                    } else {
+                        return (await waitForElement<HTMLImageElement>("img", e)).item(0).src;
+                    }
+                }),
+            )
+        ).filter((a): a is string => !!a);
 
         // NOTE: サムネイルのURLから、オリジナルのURLを取得
-        this.#mediaList = mediaList.map(src => new Media(src, false));
+        this.#mediaList = mediaList.map((src) => new Media(src, false));
 
         return this.#mediaList;
     }
-
 
     /**
      * ツイートをブックマークに追加します。

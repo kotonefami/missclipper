@@ -10,7 +10,7 @@ build({
     platform: "browser",
     format: "cjs",
     bundle: true,
-    minify: true
+    minify: true,
 });
 build({
     entryPoints: ["src/index.action.ts"],
@@ -18,5 +18,5 @@ build({
     platform: "browser",
     format: "cjs",
     bundle: true,
-    minify: true
+    minify: true,
 });
