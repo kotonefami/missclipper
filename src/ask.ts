@@ -76,6 +76,10 @@ styleTag.textContent = `
             }
         }
     }
+    & [data-missclipper-error] {
+        text-align: center;
+        padding: 2em;
+    }
 }
 </style>
 `;
@@ -112,15 +116,19 @@ export async function askClipId(callback?: (clipId: string) => any): Promise<str
 
         const listElement = dialogElement.querySelector("[data-missclipper-list]")!;
         listElement.innerHTML = "";
-        for (const clip of await getClips()) {
-            const buttonElement = document.createElement("button");
-            buttonElement.textContent = clip.name;
-            buttonElement.addEventListener("click", () => {
-                dialogElement.remove();
-                callback?.(clip.id);
-                resolve(clip.id);
-            });
-            listElement.appendChild(buttonElement);
+        try {
+            for (const clip of await getClips()) {
+                const buttonElement = document.createElement("button");
+                buttonElement.textContent = clip.name;
+                buttonElement.addEventListener("click", () => {
+                    dialogElement.remove();
+                    callback?.(clip.id);
+                    resolve(clip.id);
+                });
+                listElement.appendChild(buttonElement);
+            }
+        } catch (error) {
+            listElement.innerHTML = `<div data-missclipper-error>クリップの取得に失敗しました。<br>${error instanceof Error ? error.message : String(error)}</div>`;
         }
     });
 }
