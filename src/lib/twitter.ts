@@ -42,14 +42,18 @@ export class Media {
 }
 export class User {
     /**
+     * ユーザー名
+     */
+    public name: string;
+    /**
      * ユーザーのスクリーンネーム
      */
     public screenName: string;
 
-    /**
-     * ユーザー名
-     */
-    public name: string;
+    public constructor(name: string, screenName: string) {
+        this.name = name;
+        this.screenName = screenName;
+    }
 }
 export class Tweet {
     /**
@@ -78,8 +82,8 @@ export class Tweet {
     public text: string;
 
     #element: HTMLElement;
-    #author: User;
-    #mediaList: Media[];
+    #author: User | undefined;
+    #mediaList: Media[] | undefined;
 
     /**
      * @param element ツイート要素
@@ -109,12 +113,10 @@ export class Tweet {
     async getAuthor() {
         if (this.#author) return this.#author;
 
-        this.#author = new User();
         const userIconLink = this.#element.querySelector<HTMLAnchorElement>('[data-testid="Tweet-User-Avatar"] a')!;
         (await waitForElement<HTMLImageElement>("img", userIconLink))[0].src;
         const userLink = this.#element.querySelector('[data-testid="User-Name"] a')!;
-        this.#author.screenName = /\/([a-zA-Z0-9_]{1,16})$/.exec(userIconLink.href)?.[1]!;
-        this.#author.name = userLink.textContent!;
+        this.#author = new User(userLink.textContent!, /\/([a-zA-Z0-9_]{1,16})$/.exec(userIconLink.href)?.[1]!);
 
         return this.#author;
     }
