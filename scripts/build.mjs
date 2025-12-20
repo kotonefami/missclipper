@@ -1,7 +1,17 @@
-import { cp } from "node:fs/promises";
+import { cp, readFile, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
 
-cp("manifest.json", "dist/manifest.json");
+// cp("manifest.json", "dist/manifest.json");
+const manifest = JSON.parse(await readFile("manifest.json", "utf-8"))
+if (process.argv[2] === "firefox") {
+    manifest.browser_specific_settings = {
+        "gecko": {
+            "id": "missclipper@kotone.fami"
+        }
+    }
+}
+writeFile("dist/manifest.json", JSON.stringify(manifest), "utf-8")
+
 cp("src/html/popup.html", "dist/popup.html");
 cp("src/html/options.html", "dist/options.html");
 
@@ -24,6 +34,14 @@ build({
 build({
     entryPoints: ["src/index.options.ts"],
     outfile: "dist/index.options.js",
+    platform: "browser",
+    format: "cjs",
+    bundle: true,
+    minify: true,
+});
+build({
+    entryPoints: ["src/background.ts"],
+    outfile: "dist/background.js",
     platform: "browser",
     format: "cjs",
     bundle: true,

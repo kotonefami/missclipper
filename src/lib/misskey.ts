@@ -21,17 +21,19 @@ type Clip = {
 export async function getClips(): Promise<Clip[]> {
     const config = await getConfig();
 
-    const clips = (await (
-        await fetch(new URL("/api/clips/list", config.host), {
-            method: "POST",
-            headers: {
-                Authorization: "Bearer " + config.api_token,
-                "Content-Type": "application/json",
+    const clips = (
+        await chrome.runtime.sendMessage({
+            URL: (new URL("/api/clips/list", config.host)).href, 
+            request: {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + config.api_token,
+                    "Content-Type": "application/json",
+                },
+                body: "{}",
             },
-            body: "{}",
-        })
-    ).json()) as Clip[];
-
+            type: "json"
+        })) as Clip[];
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
@@ -53,23 +55,26 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
             body.append("isSensitive", tweet.hasSensitiveMedia.toString());
             body.append("file", await (await fetch(media.getOriginalUrl())).blob());
 
-            const result = await (
-                await fetch(new URL("/api/drive/files/create", config.host), {
+            const result = await chrome.runtime.sendMessage({
+                URL: (new URL("/api/drive/files/create", config.host)).href,
+                request: {
                     method: "POST",
                     headers: {
                         Authorization: "Bearer " + config.api_token,
                     },
                     body,
-                })
-            ).json();
+                },
+                type: "json"
+            })
             return result.id as string;
         }),
     );
 
     // NOTE: ノートを作成する
     const noteData = (
-        await (
-            await fetch(new URL("/api/notes/create", config.host), {
+        await chrome.runtime.sendMessage({
+            URL: (new URL("/api/notes/create", config.host)).href,
+            request: {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -88,21 +93,25 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     channelId: config.channel_id,
                     mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
                 }),
-            })
-        ).json()
+            }
+        })
     ).createdNote;
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
     if (clipId)
-        await fetch(new URL("/api/clips/add-note", config.host), {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + config.api_token,
+        await chrome.runtime.sendMessage({
+            URL: (new URL("/api/clips/add-note", config.host)).href,
+            request: {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + config.api_token,
+                },
+                body: JSON.stringify({
+                    clipId,
+                    noteId: noteData.id,
+                }),
             },
-            body: JSON.stringify({
-                clipId,
-                noteId: noteData.id,
-            }),
-        });
+            type: "none"
+        })
 }

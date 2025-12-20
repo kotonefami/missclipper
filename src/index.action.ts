@@ -22,16 +22,20 @@ async function refreshList() {
             const newName = prompt("新しい名前を入力してください", clip.name);
             if (!newName) return;
 
-            fetch(new URL("/api/clips/update", config.host), {
-                method: "POST",
-                headers: {
-                    Authorization: "Bearer " + config.api_token,
-                    "Content-Type": "application/json",
+            chrome.runtime.sendMessage({
+                URL: (new URL("/api/clips/update", config.host)).href,
+                request: {
+                    method: "POST",
+                    headers: {
+                        Authorization: "Bearer " + config.api_token,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        clipId: clip.id,
+                        name: newName,
+                    }),
                 },
-                body: JSON.stringify({
-                    clipId: clip.id,
-                    name: newName,
-                }),
+                type: "none"
             }).then(() => refreshList());
         });
         itemElement.appendChild(buttonElement);
