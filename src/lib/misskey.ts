@@ -50,10 +50,11 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
     // NOTE: メディアをドライブにアップロード
     const mediaIds = await Promise.all(
         (await tweet.getMediaList()).map(async (media, mediaIndex) => {
-            const body = new FormData();
-            body.append("name", `${author.screenName}-${tweet.id}-${mediaIndex}`);
-            body.append("isSensitive", tweet.hasSensitiveMedia.toString());
-            body.append("file", await (await fetch(media.getOriginalUrl())).blob());
+            const body = [
+                { key: "name", value: `${author.screenName}-${tweet.id}-${mediaIndex}` } ,
+                { key: "inSensitive", value: tweet.hasSensitiveMedia.toString()},
+                { key: "file", type: "blob", URL: media.getOriginalUrl()}
+            ];
 
             const result = await chrome.runtime.sendMessage({
                 URL: (new URL("/api/drive/files/create", config.host)).href,
@@ -64,7 +65,8 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     },
                     body,
                 },
-                type: "json"
+                type: "json",
+                bodyType: "formdata"
             })
             return result.id as string;
         }),
