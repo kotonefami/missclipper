@@ -1,4 +1,4 @@
-import { BodyOfFormData, RequestContent } from "./shared";
+import type { BodyOfFormData, RequestContent } from "./shared";
 
 chrome.runtime.onMessage.addListener((request: RequestContent, _, callback: (arg: object | null) => unknown) => {
     (async () => {

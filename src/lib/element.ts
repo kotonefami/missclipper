@@ -81,7 +81,7 @@ export function searchForChildElement(element: Element, selector: string): Eleme
     if (element.children.length === 0) return [];
 
     const results: Element[] = [];
-    for (const el of element.children) {
+    for (const el of Array.from(element.children)) {
         if (el.matches(selector)) results.push(el);
         results.push(...searchForChildElement(el, selector));
     }
