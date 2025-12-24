@@ -1,7 +1,6 @@
 import { cp, readFile, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
 
-// cp("manifest.json", "dist/manifest.json");
 const manifest = JSON.parse(await readFile("manifest.common.json", "utf-8"));
 Object.assign(
     manifest,
@@ -9,7 +8,7 @@ Object.assign(
 );
 writeFile("dist/manifest.json", JSON.stringify(manifest), "utf-8");
 
-cp("src/html/popup.html", "dist/popup.html");
+cp("src/html/action.html", "dist/action.html");
 cp("src/html/options.html", "dist/options.html");
 
 build({

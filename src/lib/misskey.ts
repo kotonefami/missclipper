@@ -47,7 +47,7 @@ async function fetch(request: BackgroundRequestInit<false>): Promise<object | nu
 export async function getClips(): Promise<Clip[]> {
     const config = await getConfig();
 
-    const clips = await fetch({
+    const clips = (await fetch({
         url: "/api/clips/list",
         method: "POST",
         headers: {
@@ -55,7 +55,7 @@ export async function getClips(): Promise<Clip[]> {
             "Content-Type": "application/json",
         },
         body: {},
-    }) as Clip[];
+    })) as Clip[];
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
@@ -78,21 +78,21 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                 { key: "file", type: "blob", url: media.getOriginalUrl() },
             ] satisfies BodyOfFormData[];
 
-            const result = await fetch({
+            const result = (await fetch({
                 url: new URL("/api/drive/files/create", config.host).href,
                 method: "POST",
                 headers: {
                     Authorization: "Bearer " + config.api_token,
                 },
                 body,
-            }) as any;
+            })) as any;
             return result.id as string;
         }),
     );
 
     // NOTE: ノートを作成する
     const noteData = (
-        await fetch({
+        (await fetch({
             url: new URL("/api/notes/create", config.host).href,
             method: "POST",
             headers: {
@@ -104,15 +104,15 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     tweet.text === ""
                         ? `https://x.com/i/status/${tweet.id}`
                         : tweet.text
-                                .split("\n")
-                                .map((l) => `> ${l}`)
-                                .join("\n") +
-                            "\n" +
-                            `https://x.com/i/status/${tweet.id}`,
+                              .split("\n")
+                              .map((l) => `> ${l}`)
+                              .join("\n") +
+                          "\n" +
+                          `https://x.com/i/status/${tweet.id}`,
                 channelId: config.channel_id,
                 mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
             },
-        }) as any
+        })) as any
     ).createdNote;
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加

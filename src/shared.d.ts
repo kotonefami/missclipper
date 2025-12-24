@@ -7,4 +7,6 @@ export type BackgroundRequestInit<Serialized extends boolean> = Omit<RequestInit
 };
 
 /** Background Script で {@link FormData} のプロパティとして処理できるオブジェクト */
-export type BodyOfFormData = { key: string; url: string; type: "blob" } | { key: string; value: string; type: "string" };
+export type BodyOfFormData =
+    | { key: string; url: string; type: "blob" }
+    | { key: string; value: string; type: "string" };
