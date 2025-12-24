@@ -4,10 +4,10 @@
         "format": "prettier --write ."
     },
     "dependencies": {
-        "esbuild": "^0.24.2"
+        "esbuild": "^0.27.2"
     },
     "devDependencies": {
-        "@types/chrome": "^0.1.27",
-        "prettier": "^3.6.2"
+        "@types/chrome": "^0.1.32",
+        "prettier": "^3.7.4"
     }
 }
