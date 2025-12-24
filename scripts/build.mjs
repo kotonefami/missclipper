@@ -37,8 +37,8 @@ build({
     minify: true,
 });
 build({
-    entryPoints: ["src/background.ts"],
-    outfile: "dist/background.js",
+    entryPoints: ["src/index.background.ts"],
+    outfile: "dist/index.background.js",
     platform: "browser",
     format: "cjs",
     bundle: true,

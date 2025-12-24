@@ -65,7 +65,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     body,
                 },
                 type: "json",
-                bodyType: "formdata",
+                bodyType: "formData",
             });
             return result.id as string;
         }),
