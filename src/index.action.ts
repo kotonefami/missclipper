@@ -1,6 +1,6 @@
 import { getConfig } from "./config";
 import { getClips } from "./lib/misskey";
-import type { RequestContent } from "./shared";
+import type { BackgroundRequestInit } from "./shared";
 
 async function refreshList() {
     const listElement = document.querySelector("#list")!;
@@ -25,20 +25,18 @@ async function refreshList() {
 
             chrome.runtime
                 .sendMessage({
-                    URL: new URL("/api/clips/update", config.host).href,
-                    request: {
-                        method: "POST",
-                        headers: {
-                            Authorization: "Bearer " + config.api_token,
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            clipId: clip.id,
-                            name: newName,
-                        }),
+                    // TODO: fetch 関数をインポートする
+                    url: new URL("/api/clips/update", config.host).href,
+                    method: "POST",
+                    headers: {
+                        Authorization: "Bearer " + config.api_token,
+                        "Content-Type": "application/json",
                     },
-                    type: "none",
-                } satisfies RequestContent)
+                    body: JSON.stringify({
+                        clipId: clip.id,
+                        name: newName,
+                    }),
+                } satisfies BackgroundRequestInit<true>)
                 .then(() => refreshList());
         });
         itemElement.appendChild(buttonElement);

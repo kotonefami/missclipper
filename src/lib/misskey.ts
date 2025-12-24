@@ -1,4 +1,4 @@
-import type { RequestContent } from "../shared";
+import type { BackgroundRequestInit, BodyOfFormData } from "../shared";
 import { getConfig } from "../config";
 import { Tweet } from "./twitter";
 
@@ -17,23 +17,45 @@ type Clip = {
 };
 
 /**
+ * Misskey API にリクエストを送信します。
+ * リクエストは Background Script を介して行われます。
+ *
+ * @param url API エンドポイントの URL
+ * @param options リクエストオプション
+ */
+async function fetch(request: BackgroundRequestInit<false>): Promise<object | null> {
+    const config = await getConfig();
+
+    // NOTE: リクエストボディをシリアライズ
+    let body: BackgroundRequestInit<true>["body"];
+    if (typeof request.body === "object" && !Array.isArray(request.body)) {
+        body = JSON.stringify(request.body);
+    } else {
+        body = request.body;
+    }
+
+    return await chrome.runtime.sendMessage({
+        ...request,
+        url: new URL(request.url, config.host).href,
+        body,
+    } satisfies BackgroundRequestInit<true>);
+}
+
+/**
  * Misskey からクリップのリストを取得します。
  */
 export async function getClips(): Promise<Clip[]> {
     const config = await getConfig();
 
-    const clips = (await chrome.runtime.sendMessage({
-        URL: new URL("/api/clips/list", config.host).href,
-        request: {
-            method: "POST",
-            headers: {
-                Authorization: "Bearer " + config.api_token,
-                "Content-Type": "application/json",
-            },
-            body: "{}",
+    const clips = await fetch({
+        url: "/api/clips/list",
+        method: "POST",
+        headers: {
+            Authorization: "Bearer " + config.api_token,
+            "Content-Type": "application/json",
         },
-        type: "json",
-    } satisfies RequestContent)) as Clip[];
+        body: {},
+    }) as Clip[];
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
@@ -51,70 +73,60 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
     const mediaIds = await Promise.all(
         (await tweet.getMediaList()).map(async (media, mediaIndex) => {
             const body = [
-                { key: "name", value: `${author.screenName}-${tweet.id}-${mediaIndex}` },
-                { key: "inSensitive", value: tweet.hasSensitiveMedia.toString() },
-                { key: "file", type: "blob", URL: media.getOriginalUrl() },
-            ];
+                { key: "name", type: "string", value: `${author.screenName}-${tweet.id}-${mediaIndex}` },
+                { key: "inSensitive", type: "string", value: tweet.hasSensitiveMedia.toString() },
+                { key: "file", type: "blob", url: media.getOriginalUrl() },
+            ] satisfies BodyOfFormData[];
 
-            const result = await chrome.runtime.sendMessage({
-                URL: new URL("/api/drive/files/create", config.host).href,
-                request: {
-                    method: "POST",
-                    headers: {
-                        Authorization: "Bearer " + config.api_token,
-                    },
-                    body,
+            const result = await fetch({
+                url: new URL("/api/drive/files/create", config.host).href,
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + config.api_token,
                 },
-                type: "json",
-                bodyType: "formData",
-            } satisfies RequestContent);
+                body,
+            }) as any;
             return result.id as string;
         }),
     );
 
     // NOTE: ノートを作成する
     const noteData = (
-        await chrome.runtime.sendMessage({
-            URL: new URL("/api/notes/create", config.host).href,
-            request: {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + config.api_token,
-                },
-                body: JSON.stringify({
-                    text:
-                        tweet.text === ""
-                            ? `https://x.com/i/status/${tweet.id}`
-                            : tweet.text
-                                  .split("\n")
-                                  .map((l) => `> ${l}`)
-                                  .join("\n") +
-                              "\n" +
-                              `https://x.com/i/status/${tweet.id}`,
-                    channelId: config.channel_id,
-                    mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
-                }),
+        await fetch({
+            url: new URL("/api/notes/create", config.host).href,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + config.api_token,
             },
-            type: "json",
-        } satisfies RequestContent)
+            body: {
+                text:
+                    tweet.text === ""
+                        ? `https://x.com/i/status/${tweet.id}`
+                        : tweet.text
+                                .split("\n")
+                                .map((l) => `> ${l}`)
+                                .join("\n") +
+                            "\n" +
+                            `https://x.com/i/status/${tweet.id}`,
+                channelId: config.channel_id,
+                mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
+            },
+        }) as any
     ).createdNote;
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
     if (clipId)
-        await chrome.runtime.sendMessage({
-            URL: new URL("/api/clips/add-note", config.host).href,
-            request: {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + config.api_token,
-                },
-                body: JSON.stringify({
-                    clipId,
-                    noteId: noteData.id,
-                }),
+        await fetch({
+            url: new URL("/api/clips/add-note", config.host).href,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + config.api_token,
             },
-            type: "none",
-        } satisfies RequestContent);
+            body: {
+                clipId,
+                noteId: noteData.id,
+            },
+        });
 }

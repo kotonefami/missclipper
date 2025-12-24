@@ -1,33 +1,39 @@
-import type { BodyOfFormData, RequestContent } from "./shared";
+import type { BackgroundRequestInit } from "./shared";
 
-chrome.runtime.onMessage.addListener((request: RequestContent, _, callback: (arg: object | null) => unknown) => {
-    (async () => {
+chrome.runtime.onMessage.addListener((request: BackgroundRequestInit<true>, _, callback: (arg: object | null) => unknown) => {
+    new Promise<object | null>(async (resolve, reject) => {
         try {
-            if (request.bodyType == "formData") {
-                const newFormData = new FormData();
-                for (const formData of request.request.body as unknown as BodyOfFormData[]) {
+            let body: BodyInit | null;
+            if (typeof request.body === "string") {
+                body = request.body;
+            } else if (typeof request.body === "object") {
+                body = new FormData();
+                for (const formData of request.body) {
                     if (formData?.type === "blob") {
-                        newFormData.append(formData.key, await (await fetch(formData.URL)).blob());
+                        body.append(formData.key, await (await fetch(formData.url)).blob());
                     } else {
-                        newFormData.append(formData.key, formData.value);
+                        body.append(formData.key, formData.value);
                     }
                 }
-                request.request.body = newFormData;
+            } else {
+                body = null;
             }
 
-            const response = await fetch(request.URL, request.request);
-            switch (request.type) {
-                case "json": {
-                    callback(await response.json());
-                }
-                case "none": {
-                    callback(null);
-                }
+            // TODO: DNS エラーなどは Failed to fetch で catch に飛ばない問題
+            const response = await fetch(request.url, { ...request, body });
+            if (!response.ok) {
+                // TODO: よりよいエラーハンドリング
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            try {
+                resolve(await response.json());
+            } catch {
+                resolve(null);
             }
         } catch (e) {
             console.error(e);
-            callback(null);
+            reject(e);
         }
-    })();
+    }).then(callback);
     return true;
 });
