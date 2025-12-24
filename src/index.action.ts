@@ -1,5 +1,6 @@
 import { getConfig } from "./config";
 import { getClips } from "./lib/misskey";
+import type { RequestContent } from "./shared";
 
 async function refreshList() {
     const listElement = document.querySelector("#list")!;
@@ -37,7 +38,7 @@ async function refreshList() {
                         }),
                     },
                     type: "none",
-                })
+                } satisfies RequestContent)
                 .then(() => refreshList());
         });
         itemElement.appendChild(buttonElement);

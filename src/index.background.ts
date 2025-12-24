@@ -1,8 +1,4 @@
-/** Background Script がリクエストを送信するために必要な情報 */
-type RequestContent = { URL: string; request: RequestInit; type: "json" | "none"; bodyType?: "formData" };
-
-/** Background Script で {@link FormData} のプロパティとして処理できるオブジェクト */
-type BodyOfFormData = { key: string; URL: string; type: "blob" } | { key: string; value: string; type?: "string" };
+import { BodyOfFormData, RequestContent } from "./shared";
 
 chrome.runtime.onMessage.addListener((request: RequestContent, _, callback: (arg: object | null) => unknown) => {
     (async () => {

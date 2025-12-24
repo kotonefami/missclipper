@@ -1,3 +1,4 @@
+import type { RequestContent } from "../shared";
 import { getConfig } from "../config";
 import { Tweet } from "./twitter";
 
@@ -32,7 +33,7 @@ export async function getClips(): Promise<Clip[]> {
             body: "{}",
         },
         type: "json",
-    })) as Clip[];
+    } satisfies RequestContent)) as Clip[];
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
@@ -66,7 +67,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                 },
                 type: "json",
                 bodyType: "formData",
-            });
+            } satisfies RequestContent);
             return result.id as string;
         }),
     );
@@ -95,7 +96,8 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
                 }),
             },
-        })
+            type: "json",
+        } satisfies RequestContent)
     ).createdNote;
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
@@ -114,5 +116,5 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                 }),
             },
             type: "none",
-        });
+        } satisfies RequestContent);
 }
