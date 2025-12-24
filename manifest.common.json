@@ -22,7 +22,5 @@
             "run_at": "document_start"
         }
     ],
-    "host_permissions": [
-        "<all_urls>"
-    ]
+    "host_permissions": ["<all_urls>"]
 }

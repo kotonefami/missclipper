@@ -21,19 +21,18 @@ type Clip = {
 export async function getClips(): Promise<Clip[]> {
     const config = await getConfig();
 
-    const clips = (
-        await chrome.runtime.sendMessage({
-            URL: (new URL("/api/clips/list", config.host)).href, 
-            request: {
-                method: "POST",
-                headers: {
-                    Authorization: "Bearer " + config.api_token,
-                    "Content-Type": "application/json",
-                },
-                body: "{}",
+    const clips = (await chrome.runtime.sendMessage({
+        URL: new URL("/api/clips/list", config.host).href,
+        request: {
+            method: "POST",
+            headers: {
+                Authorization: "Bearer " + config.api_token,
+                "Content-Type": "application/json",
             },
-            type: "json"
-        })) as Clip[];
+            body: "{}",
+        },
+        type: "json",
+    })) as Clip[];
     return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
@@ -51,13 +50,13 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
     const mediaIds = await Promise.all(
         (await tweet.getMediaList()).map(async (media, mediaIndex) => {
             const body = [
-                { key: "name", value: `${author.screenName}-${tweet.id}-${mediaIndex}` } ,
-                { key: "inSensitive", value: tweet.hasSensitiveMedia.toString()},
-                { key: "file", type: "blob", URL: media.getOriginalUrl()}
+                { key: "name", value: `${author.screenName}-${tweet.id}-${mediaIndex}` },
+                { key: "inSensitive", value: tweet.hasSensitiveMedia.toString() },
+                { key: "file", type: "blob", URL: media.getOriginalUrl() },
             ];
 
             const result = await chrome.runtime.sendMessage({
-                URL: (new URL("/api/drive/files/create", config.host)).href,
+                URL: new URL("/api/drive/files/create", config.host).href,
                 request: {
                     method: "POST",
                     headers: {
@@ -66,8 +65,8 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     body,
                 },
                 type: "json",
-                bodyType: "formdata"
-            })
+                bodyType: "formdata",
+            });
             return result.id as string;
         }),
     );
@@ -75,7 +74,7 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
     // NOTE: ノートを作成する
     const noteData = (
         await chrome.runtime.sendMessage({
-            URL: (new URL("/api/notes/create", config.host)).href,
+            URL: new URL("/api/notes/create", config.host).href,
             request: {
                 method: "POST",
                 headers: {
@@ -95,14 +94,14 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     channelId: config.channel_id,
                     mediaIds: mediaIds.length === 0 ? undefined : mediaIds,
                 }),
-            }
+            },
         })
     ).createdNote;
 
     // NOTE: クリップIDが指定されている場合は、ノートをクリップに追加
     if (clipId)
         await chrome.runtime.sendMessage({
-            URL: (new URL("/api/clips/add-note", config.host)).href,
+            URL: new URL("/api/clips/add-note", config.host).href,
             request: {
                 method: "POST",
                 headers: {
@@ -114,6 +113,6 @@ export async function postToMisskey(tweet: Tweet, clipId?: string): Promise<void
                     noteId: noteData.id,
                 }),
             },
-            type: "none"
-        })
+            type: "none",
+        });
 }
