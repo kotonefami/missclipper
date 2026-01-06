@@ -43,20 +43,41 @@ async function fetch(request: BackgroundRequestInit<false>): Promise<object | nu
 
 /**
  * Misskey からクリップのリストを取得します。
+ * @param limit 取得する最大件数
+ * @param pageSize API 1回あたりの取得件数
  */
-export async function getClips(): Promise<Clip[]> {
+export async function getClips(limit: number = 1000, pageSize: number = 100): Promise<Clip[]> {
     const config = await getConfig();
+    let clips: Clip[] = [];
+    let untilId: string | undefined;
 
-    const clips = (await fetch({
-        url: "/api/clips/list",
-        method: "POST",
-        headers: {
-            Authorization: "Bearer " + config.api_token,
-            "Content-Type": "application/json",
-        },
-        body: {},
-    })) as Clip[];
-    return clips.sort((a, b) => (a.name > b.name ? 1 : -1));
+    while (clips.length < limit) {
+        const response = (await fetch({
+            url: "/api/clips/list",
+            method: "POST",
+            headers: {
+                Authorization: "Bearer " + config.api_token,
+                "Content-Type": "application/json",
+            },
+            body: {
+                limit: pageSize,
+                untilId,
+            },
+        })) as Clip[];
+
+        if (!response || response.length === 0) {
+            break;
+        }
+
+        clips = clips.concat(response);
+        untilId = response[response.length - 1].id;
+
+        if (response.length < pageSize) {
+            break;
+        }
+    }
+
+    return clips.slice(0, limit).sort((a, b) => (a.name > b.name ? 1 : -1));
 }
 
 /**
